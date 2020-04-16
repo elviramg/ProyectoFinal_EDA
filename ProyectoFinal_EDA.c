@@ -9,7 +9,7 @@
 
 //ESTRUCTURAS
 
-typedef struct nodo {
+typedef struct nodo { //ESTRUCTURA DE LOS DOCUMENTOS
 	char docu[20];
 	//Contador de documentos
 	int cta;
@@ -21,7 +21,7 @@ typedef struct nodo {
 
 } Nodo;//Esta es la estructura para los documentos
 
-typedef struct NewImp {
+typedef struct NewImp { //ESTRUCTURA NUEVA IMPRESORA
 	//Contador de cantidad de impresoras
 	int cta;
 	char nombreImp[20];
@@ -31,6 +31,33 @@ typedef struct NewImp {
 	struct NewImp *sig;
 } Imp; //Esta es la estructura para la impresora
 
+typedef struct NewUs { //ESTRUCTURA NUEVO USUARIO
+	char usuario[20];
+	//Contador de la cantidad de usuarios
+	int noUs;
+	int prioridad;
+	struct NewUs *siguiente;
+} Usuario; // Esta es la estructura para usuarios
+
+Nodo *DocPrim, *DocUlt;
+Nodo *mandado;
+Imp *mando;
+int  numero_Imp=0;
+
+char usua[20], claveUsuario[10];
+int i=0;
+
+//APUNTADORES
+int agregar_Imp(Imp **primero, Imp **ultimo, int numero_Imp);
+int eliminar_Imp(Imp **primero, Imp **ultimo, int numero_Imp);
+int impresoras_Conectadas(Imp **primero, Nodo **DocPrim, Usuario **ultimoUS, Nodo **mandado_a_imprimir, int numero_Imp);
+int AgregarDoc(Nodo **DocPrim, Nodo **DocUltimo, Usuario **ultimoUS, Imp **mando);
+int ingresar_Usuario(Usuario **primerUS, Usuario **ultimoUS);
+Imp* Imprimir(Imp **primero, Imp **ultimo, int numero_Imp);
+Usuario *primerUS, *ultimoUS;
+
+//Contraseña
+    char claveSitema[10]= "hola"; 
 
 int main(){
 	setlocale(LC_CTYPE, "Spanish");
@@ -54,15 +81,15 @@ int main(){
 
             switch(opc){
             case 1:
-               //agregar funcion
+				numero_Imp = agregar_Imp(&primero, &ultimo, numero_Imp);
                 system("pause");
                 break;
             case 2:
-            	//agregar función
+            	numero_Imp = eliminar_Imp(&primero, &ultimo, numero_Imp);
                 system("pause");
                 break;
             case 3:
-                //agregar funcion
+                impresoras_Conectadas(&primero, &DocPrim, &ultimoUS, &mandado, numero_Imp);
                 system("pause");
                 break;
             case 4:
@@ -88,5 +115,125 @@ int main(){
     }
     
     //FUNCIONES
+    
+int agregar_Imp(Imp **primero, Imp **ultimo, int numero_Imp){
+    printf("\n\t\t****AGREGAR IMPRESORA****\n");
+    Imp *New; //APUNTADOR QUE APUNTA A ESTRUCTURA IMP
+	if((New=(Imp *)malloc(sizeof(Imp)))==NULL){
+		printf("\n\nNo pude almacenar memoria\n");
+		return -1;
+	}
+	
+	numero_Imp++;
+	printf("Usted está conectado a %d impresoras\n", (numero_Imp));
+	New->cta=numero_Imp;
+	New->sig=NULL;
+	/*apartamos espacio*/
+	if((New->ultimaImpre=(Nodo *)malloc(sizeof(Nodo)))==NULL){
+		printf("\n\nNo pude almacenar memoria\n");
+		return -1;
+	}
+	
+	if((New->impresiones=(Nodo *)malloc(sizeof(Nodo)))==NULL){
+		printf("\n\nNo pude almacenar memoria\n");
+		return -1;
+	}
+	
+	printf("Ingrese el nombre de la impresora: ");
+	fflush(stdin);
+    gets(New->nombreImp);
+
+	New->ultimaImpre->cta = 0;
+	New->impresiones->cta = 0;
+
+	if(*ultimo)
+		(*ultimo)->sig = New; //el apuntador siguiente de la estructura que estaba al ultimo guarda la direccion de la nueva estructura
+		*ultimo = New; //ahora el ultimo es el nueevo
+	
+	if(!*primero) //si primero == NULL entonces es la primera estructura impresora en agregarse
+		*primero = New;
+
+		return numero_Imp;
+}
+
+int eliminar_Imp(Imp **primero, Imp **ultimo, int numero_Imp){
+	 Imp *nodo, *temp;
+    nodo = *primero; //nodo tiene la direccion de la primera (estructura) impresora
+    temp = *primero;//se creo un apuntador temporal para no perder las direcciones
+    char conf;
+
+    if(!nodo){ //si el *primero estaba en NULL noy hay impresoras
+		printf("\n\nNo hay impresoras conectadas. No se puede eliminar\n");
+		return 0;
+	}
+	else{
+		printf("\nHay %d impresora(s) conectadas\n\n", numero_Imp);
+		printf("Se eliminara la impresora %s (%d) con %d documentos\n",nodo->nombreImp, nodo->cta, nodo->ultimaImpre->cta);
+		printf("¿Estas seguro de eliminar (desconectar) la impresora? (s/n): ");
+		fflush(stdin);
+		scanf("%c", &conf);
+		if(conf == 's' || conf == 'S'){
+            int i;
+			for(i=0; i<(numero_Imp-1); i++){
+				nodo = nodo->sig;//recorremos nodos
+				(nodo->cta)--;//la impresora 2 ahora es la 1...
+			}
+			*primero = temp->sig;//ahora el primero apunta a la estructura siguiente
+			free(temp);//liberamos la estructura a la que apuntaba "temp"
+			printf("\nSe ha eliminado impresora \n");
+			numero_Imp--;//hay una impresora menos, contador disminuye
+		}
+        if(!*primero)//si ya no hay impresoras
+            *ultimo = NULL;
+
+        return numero_Imp;
+}
+}
+
+int impresoras_Conectadas(Imp **primero, Nodo **DocPrim, Usuario **ultimoUS, Nodo **mandado, int numero_Imp){
+	Imp *nodo; //Apuntador de tipo impresora
+
+Nodo *docum;
+docum= *DocPrim;
+	int i;
+	nodo = *primero; //el apuntador esta en la primera (estructura) impresora
+	printf("Hay %d impresora(s) conectadas\n\n", numero_Imp);
+	printf("Los documentos en la cola son: \n");
+	for(i=0; i<numero_Imp; i++){
+		do
+        {
+            printf("Documento %s enviado por el usuario %s en impresora %s de prioridad %d\n", docum->docu, docum->usuario, docum->mandado_a_imprimir->nombreImp, docum->prioridad);
+            if(docum->siguiente){
+            docum=docum->siguiente;
+            }
+            }
+            while(docum->siguiente!=NULL);
+		nodo = nodo->sig;  //recorremos el apuntador a la (estructura) impresora siguient
+	}
+}
+
+Imp* Imprimir(Imp **primero, Imp **ultimo, int numero_Imp){
+	char n[10];
+    char confirmacion = '\0';
+	Imp *mando, *visualizar;
+	Nodo *DocPrim, *DocUlt;
+
+	if(numero_Imp != 0){
+		mando = *primero;
+		system("cls");
+		printf("\n***Menú de impresión***\n");
+		printf("Conectado a %d impresora(s)\n", numero_Imp);
+}
+
+int AgregarDoc(Nodo **DocPrim, Nodo **DocUlt, Usuario **ultimoUS, Imp **mando){
+	
+}
+
+int ingresar_Usuario(Usuario **primerUS, Usuario **ultimoUS){
+	
+}
+
+
+
 }
 
