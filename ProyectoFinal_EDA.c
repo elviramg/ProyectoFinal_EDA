@@ -263,7 +263,12 @@ int AgregarDoc(Nodo **DocPrim, Nodo **DocUlt, Usuario **ultimoUS, Imp **mando){
 	
 	NewDoc->siguiente=NULL; //Mandamos el apuntar siguiente a null por ser la ultima estructura creada
 	
-	//Ingresar apuntadores que apunten al usuario, y al documento más actual (Investigar este punto)
+	Usuario *UsActual;
+	UsActual=*ultimoUS;
+	
+	
+	
+	
 }
 
 int ingresar_Usuario(Usuario **primerUS, Usuario **ultimoUS){
